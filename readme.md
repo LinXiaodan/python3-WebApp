@@ -1,4 +1,5 @@
 ## Python3完成的一个Web APP
+
 ### 目录
 - backup: 备份目录
 - conf: 配置文件
@@ -9,6 +10,6 @@
 - LICENSE: 代码LICENSE
 
 ### 第三方库
-- aiohttp: 异步框架
+- aiohttp: 异步框架， 基于asyncio实现的HTTP框架
 - jinja2: 前端模板引擎
 - aiomysql: MySQL的Python异步驱动程序
