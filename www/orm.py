@@ -10,13 +10,8 @@ import aiomysql
 def log(sql):
     logging.info('SQL: %s' % sql)
 
+# 数据库连接池， 创建全局连接池，每个http请求都可以从连接池中直接获取数据库连接，避免频繁打开和关闭数据库连接
 async def create_pool(loop, **kwargs):
-    """
-    数据库连接池， 创建全局连接池，每个http请求都可以从连接池中直接获取数据库连接，避免频繁打开和关闭数据库连接
-    :param loop: 
-    :param kwargs: 
-    :return: 
-    """
     logging.info('create database connection pool...')
     global __pool
     __pool = await aiomysql.create_pool(
@@ -32,6 +27,7 @@ async def create_pool(loop, **kwargs):
         loop=loop
     )
 
+# 销毁连接池
 async def destroy_pool():
     global __pool
     if __pool is not None:
@@ -61,11 +57,12 @@ async def select(sql, args, size=None):
 async def execute(sql, args, autocommit=True):
     """
     执行insert, update, delete语句的封装
-    :param sql: 
-    :param args: 
+    :param sql: SQL语句
+    :param args: 参数
     :return: 影响行数
     """
     log(sql)
+    global __pool
     async with __pool.get() as conn:
         if not autocommit:
             await conn.begin()
@@ -132,6 +129,7 @@ class TextField(Field):
         super().__init__(name, 'text', False, default)
 
 
+# 读取映射信息的ModelMetaclass
 class ModelMetaclass(type):
 
     def __new__(cls, name, bases, attrs):
@@ -225,7 +223,7 @@ class Model(dict, metaclass=ModelMetaclass):
 
     @classmethod
     async def find(cls, pk):
-        # 主键查找： user = yield form User.find('123')
+        # 主键查找： user = yield form User.find(1234)
         rs = await select('%s where `%s`=?' % (cls.__select__, cls.__primary_key__), [pk], 1)
         if len(rs) == 0:
             return None
@@ -233,6 +231,13 @@ class Model(dict, metaclass=ModelMetaclass):
 
     @classmethod
     async def findAll(cls, where=None, args=None, **kwargs):
+        """
+        根据where条件查找
+        :param where: 
+        :param args: 
+        :param kwargs: 
+        :return: 
+        """
         sql = [cls.__select__]
         if where:
             sql.append('where')

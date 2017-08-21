@@ -3,7 +3,7 @@
 # Created on 17-8-18
 # Author: LXD
 
-from orm import Model, StringField, IntegerField
+from www.orm import Model, StringField, IntegerField
 
 
 class User(Model):
